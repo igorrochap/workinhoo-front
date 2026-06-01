@@ -1,111 +1,21 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import RecoverStepIndicator from '@/components/recover/RecoverStepIndicator.vue'
 import VerifyCodeModal from '@/components/recover/VerifyCodeModal.vue'
 import ResetSuccessModal from '@/components/recover/ResetSuccessModal.vue'
+import { useRecuperacaoSenha } from '@/composables/useRecuperacaoSenha'
 
-const router = useRouter()
-
-const stepAtual = ref(1)
-
-const form = reactive({
-  email: '',
-  senha: '',
-  confirmarSenha: ''
-})
-
-const enviado = ref(false)
-const tocado = reactive({ email: false, senha: false, confirmarSenha: false })
-const agitando = ref(false)
-const senhaVisivel = ref(false)
-const confirmarVisivel = ref(false)
-
-const modalCodigoAberto = ref(false)
-const modalSucessoAberto = ref(false)
-
-const modalRef = ref<InstanceType<typeof VerifyCodeModal> | null>(null)
-
-const requisitos = computed(() => ({
-  maiuscula: /[A-Z]/.test(form.senha),
-  minuscula: /[a-z]/.test(form.senha),
-  numero: /[0-9]/.test(form.senha),
-  especial: /[^A-Za-z0-9]/.test(form.senha),
-  tamanho: form.senha.length >= 8,
-}))
-
-const senhaForte = computed(() => Object.values(requisitos.value).every(Boolean))
-
-const mostrarRequisitos = computed(() =>
-  (tocado.senha || enviado.value) && !!form.senha && !senhaForte.value
-)
-
-const senhasErro = computed(() =>
-  (enviado.value || tocado.confirmarSenha) &&
-  !!form.confirmarSenha &&
-  form.senha !== form.confirmarSenha
-)
-
-function emailValido(email: string): boolean {
-  return email.includes('@') && email.includes('.')
-}
-
-function validarEmail() {
-  return !!form.email && emailValido(form.email)
-}
-
-function validarSenha() {
-  return !!form.senha && senhaForte.value && !!form.confirmarSenha && !senhasErro.value
-}
-
-function agitar() {
-  agitando.value = true
-  setTimeout(() => (agitando.value = false), 500)
-}
-
-function resetarEstado() {
-  enviado.value = false
-  tocado.email = false
-  tocado.senha = false
-  tocado.confirmarSenha = false
-}
-
-function enviarCodigo() {
-  enviado.value = true
-  if (!validarEmail()) { agitar(); return }
-  modalCodigoAberto.value = true
-}
-
-async function confirmarCodigo(codigo: string) {
-  const ok = codigo === '123456'
-  if (!ok) { modalRef.value?.toastErro(); return }
-  modalRef.value?.toastSucesso()
-  setTimeout(() => {
-    modalCodigoAberto.value = false
-    resetarEstado()
-    stepAtual.value = 2
-  }, 450)
-}
-
-function reenviarCodigo() {
-  modalRef.value?.toastReenviado()
-}
-
-function redefinirSenha() {
-  enviado.value = true
-  if (!validarSenha()) { agitar(); return }
-  modalSucessoAberto.value = true
-}
-
-function voltarStep1() {
-  resetarEstado()
-  stepAtual.value = 1
-}
-
-function irParaLogin() {
-  router.push('/entrar')
-}
+const {
+  stepAtual, form, enviado, tocado, agitando,
+  senhaVisivel, confirmarVisivel,
+  modalCodigoAberto, modalSucessoAberto,
+  carregando,
+  erroEmailServidor, erroSenhaServidor,
+  requisitos, senhaForte, mostrarRequisitos, senhasErro,
+  emailValido, modalRef,
+  enviarCodigo, confirmarCodigo, reenviarCodigo, redefinirSenha,
+  voltarStep1, irParaLogin
+} = useRecuperacaoSenha()
 </script>
 
 <template>
@@ -142,7 +52,6 @@ function irParaLogin() {
 
         <div class="form-container">
           <Transition name="step" mode="out-in">
-
             <section v-if="stepAtual === 1" key="step1">
               <div class="form-cabecalho">
                 <h1 class="form-titulo">Verifique seu email</h1>
@@ -156,6 +65,7 @@ function irParaLogin() {
                   <input v-model="form.email" type="email" class="form-input" placeholder="seu@gmail.com"
                     autocomplete="email" @blur="tocado.email = true" :class="{
                       'input-erro':
+                        !!erroEmailServidor ||
                         (enviado && !form.email) ||
                         ((enviado || tocado.email) && form.email && !emailValido(form.email))
                     }" />
@@ -163,10 +73,21 @@ function irParaLogin() {
                   <p v-else-if="(enviado || tocado.email) && form.email && !emailValido(form.email)" class="erro-texto">
                     Email inválido
                   </p>
+                  <p v-else-if="erroEmailServidor" class="erro-texto">
+                    {{ erroEmailServidor }}
+                  </p>
                 </div>
 
                 <div class="form-acoes">
-                  <button type="submit" class="btn-primario btn-bloco">Enviar código</button>
+                  <button type="submit" class="btn-primario btn-bloco" :disabled="carregando">
+                    <span v-if="!carregando">Enviar código</span>
+                    <span v-else class="btn-loading">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="spinner">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"
+                          stroke-dasharray="31.4 31.4" stroke-linecap="round" />
+                      </svg>
+                    </span>
+                  </button>
                 </div>
               </form>
             </section>
@@ -276,8 +197,18 @@ function irParaLogin() {
                   <p v-else-if="enviado && !form.confirmarSenha" class="erro-texto">Campo obrigatório</p>
                 </div>
 
+                <p v-if="erroSenhaServidor" class="erro-texto">{{ erroSenhaServidor }}</p>
+
                 <div class="form-acoes">
-                  <button type="submit" class="btn-primario btn-bloco">Redefinir senha</button>
+                  <button type="submit" class="btn-primario btn-bloco" :disabled="carregando">
+                    <span v-if="!carregando">Redefinir senha</span>
+                    <span v-else class="btn-loading">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="spinner">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"
+                          stroke-dasharray="31.4 31.4" stroke-linecap="round" />
+                      </svg>
+                    </span>
+                  </button>
                 </div>
 
                 <div class="divisor">
@@ -291,14 +222,13 @@ function irParaLogin() {
                 </button>
               </form>
             </section>
-
           </Transition>
         </div>
       </div>
     </main>
 
-    <VerifyCodeModal ref="modalRef" :aberto="modalCodigoAberto" :email="form.email" @fechar="modalCodigoAberto = false"
-      @confirmar="confirmarCodigo" @reenviar="reenviarCodigo" />
+    <VerifyCodeModal ref="modalRef" :aberto="modalCodigoAberto" :email="form.email" :carregando="carregando"
+      @fechar="modalCodigoAberto = false" @confirmar="confirmarCodigo" @reenviar="reenviarCodigo" />
 
     <ResetSuccessModal :aberto="modalSucessoAberto" @fechar="modalSucessoAberto = false" @irLogin="irParaLogin" />
   </div>
@@ -642,6 +572,41 @@ function irParaLogin() {
 
 .form-acoes {
   margin-top: 0.25rem;
+}
+
+.btn-primario:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 12px 32px rgba(62, 58, 168, 0.42);
+}
+
+.btn-primario:hover:not(:disabled)::after {
+  opacity: 1;
+}
+
+.btn-primario:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  box-shadow: none;
+}
+
+.btn-primario:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
 }
 
 .btn-primario {
