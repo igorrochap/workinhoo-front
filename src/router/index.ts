@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -7,11 +8,6 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: () => import('@/views/HomeView.vue'),
-    },
-    {
-      path: '/inicio',
-      name: 'logged-home',
-      component: () => import('@/views/usuario/UsuarioLoggedHomeView.vue'),
     },
     {
       path: '/cadastrar',
@@ -27,8 +23,59 @@ const router = createRouter({
       path: '/recuperar-senha',
       name: 'recover-password',
       component: () => import('@/views/RecoverPasswordView.vue'),
+    }, 
+    {
+      path: '/inicio',
+      name: 'logged-home',
+      component: () => import('@/views/usuario/UsuarioLoggedHomeView.vue'),
+    },
+    {
+      path: '/perfil',
+      name: 'profile',
+      component: () => import('@/views/ProfileView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/prestadores/:id',
+      component: () => import('@/views/provider/ProviderDetailsView.vue'),
+      props: true,
+      children: [
+        {
+          path: '',
+          redirect: to => ({ name: 'provider-details-about', params: { id: to.params.id } }),
+        },
+        {
+          path: 'sobre',
+          name: 'provider-details-about',
+          component: () => import('@/components/provider/tabs/TabSobre.vue'),
+        },
+        {
+          path: 'portfolio',
+          name: 'provider-details-portfolio',
+          component: () => import('@/components/provider/tabs/TabPortfolio.vue'),
+        },
+        {
+          path: 'avaliacoes',
+          name: 'provider-details-reviews',
+          component: () => import('@/components/provider/tabs/TabAvaliacoes.vue'),
+        },
+      ],
     },
   ],
+})
+
+router.beforeEach(async (to) => {
+  const authStore = useAuthStore()
+
+  if (!authStore.initialized) {
+    await authStore.ensureUserLoaded()
+  }
+
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    return { name: 'home' }
+  }
+
+  return true
 })
 
 export default router
