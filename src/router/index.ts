@@ -23,6 +23,7 @@ const router = createRouter({
       path: '/recuperar-senha',
       name: 'recover-password',
       component: () => import('@/views/RecoverPasswordView.vue'),
+    }, 
     {
       path: '/perfil',
       name: 'profile',

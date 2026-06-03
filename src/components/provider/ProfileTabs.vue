@@ -29,8 +29,9 @@ function changeTab(routeName: string) {
 
 <template>
   <nav class="profile-tabs" role="tablist" aria-label="Seções do perfil">
-    <button v-for="tab in tabs" :key="tab.id" class="tab-btn" :class="{ active: activeTab === tab.id }" role="tab"
-      :aria-selected="activeTab === tab.id" @click="changeTab(tab.name)">
+    <button v-for="tab in tabs" :key="tab.id" :id="`tab-${tab.id}`" class="tab-btn"
+      :class="{ active: activeTab === tab.id }" role="tab" :aria-controls="`panel-${tab.id}`"
+      :aria-selected="activeTab === tab.id" type="button" @click="changeTab(tab.name)">
       <span class="tab-btn__label">{{ tab.label }}</span>
     </button>
   </nav>
