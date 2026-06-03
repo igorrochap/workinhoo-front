@@ -17,7 +17,7 @@ function fechar() {
     <Teleport to="body">
         <Transition name="modal">
             <div v-if="aberto" class="modal-overlay">
-                <div class="modal-card" role="dialog" aria-modal="true" aria-label="Conta criada com sucesso">
+                <div class="modal-card" role="dialog" aria-modal="true" :aria-label="titulo">
 
                     <div class="modal-cabecalho">
                         <div class="icon-wrapper" aria-hidden="true">
@@ -160,20 +160,20 @@ function fechar() {
 }
 
 .btn-primario {
-  background: linear-gradient(180deg,
-      color-mix(in srgb, var(--color-primary-darkest) 90%, white) 0%,
-      var(--color-primary-darkest) 100%);
-  color: #ffffff;
-  border-color: var(--color-primary-darkest);
-  box-shadow: 0 0.875rem 1.5rem rgba(22, 29, 39, 0.14);
+    background: linear-gradient(180deg,
+            color-mix(in srgb, var(--color-primary-darkest) 90%, white) 0%,
+            var(--color-primary-darkest) 100%);
+    color: #ffffff;
+    border-color: var(--color-primary-darkest);
+    box-shadow: 0 0.875rem 1.5rem rgba(22, 29, 39, 0.14);
 }
 
 .btn-primario:hover {
-  background: linear-gradient(180deg,
-      color-mix(in srgb, var(--color-primary-dark) 90%, white) 0%,
-      var(--color-primary-dark) 100%);
-  border-color: var(--color-primary-dark);
-  box-shadow: 0 1rem 2rem rgba(22, 29, 39, 0.18);
+    background: linear-gradient(180deg,
+            color-mix(in srgb, var(--color-primary-dark) 90%, white) 0%,
+            var(--color-primary-dark) 100%);
+    border-color: var(--color-primary-dark);
+    box-shadow: 0 1rem 2rem rgba(22, 29, 39, 0.18);
 }
 
 .modal-enter-active,
