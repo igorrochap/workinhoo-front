@@ -25,6 +25,11 @@ const router = createRouter({
       component: () => import('@/views/RecoverPasswordView.vue'),
     }, 
     {
+      path: '/inicio',
+      name: 'logged-home',
+      component: () => import('@/views/usuario/UsuarioLoggedHomeView.vue'),
+    },
+    {
       path: '/perfil',
       name: 'profile',
       component: () => import('@/views/ProfileView.vue'),
