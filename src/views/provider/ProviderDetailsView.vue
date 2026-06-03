@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import ProfileHero from '@/components/provider/ProfileHero.vue'
 import ProfileTabs from '@/components/provider/ProfileTabs.vue'
 import type { Prestador } from '@/types/prestador'
-
-const route = useRoute()
-const router = useRouter()
 
 const prestador = ref<Prestador>({
     id: 1,
