@@ -11,7 +11,7 @@ const router = createRouter({
     {
       path: '/inicio',
       name: 'logged-home',
-      component: () => import('@/views/LoggedHomeView.vue'),
+      component: () => import('@/views/usuario/UsuarioLoggedHomeView.vue'),
     },
     {
       path: '/cadastrar',
