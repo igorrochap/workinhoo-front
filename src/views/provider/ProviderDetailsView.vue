@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, watchEffect } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import ProfileHero from '@/components/provider/ProfileHero.vue'
 import ProfileTabs from '@/components/provider/ProfileTabs.vue'
 import type { Prestador } from '@/types/prestador'
 
-const prestador = ref<Prestador>({
+const route = useRoute()
+const router = useRouter()
+
+const prestadorMock: Prestador = {
     id: 1,
     nome: 'Rafaela Pereira',
     roles: ['Nutricionista', 'Personal Trainer'],
@@ -165,22 +169,27 @@ const prestador = ref<Prestador>({
             data: 'Abril de 2026',
         },
     ],
+}
+
+const prestadorId = computed(() => Number(route.params.id))
+
+watchEffect(() => {
+    if (prestadorId.value !== prestadorMock.id) {
+        router.replace({ name: 'not-found' })
+    }
 })
 
-const totalAvaliacoes = computed(() => prestador.value.avaliacoes.length)
+const totalAvaliacoes = computed(() => prestadorMock.avaliacoes.length)
 
 const notaMedia = computed(() => {
-    if (prestador.value.avaliacoes.length === 0) return 0
+    if (prestadorMock.avaliacoes.length === 0) return 0
 
-    const soma = prestador.value.avaliacoes.reduce((acc, avaliacao) => {
-        return acc + avaliacao.nota
-    }, 0)
-
-    return soma / prestador.value.avaliacoes.length
+    const soma = prestadorMock.avaliacoes.reduce((acc, avaliacao) => acc + avaliacao.nota, 0)
+    return soma / prestadorMock.avaliacoes.length
 })
 
 const prestadorComResumo = computed(() => ({
-    ...prestador.value,
+    ...prestadorMock,
     nota: Number(notaMedia.value.toFixed(1)),
     totalAvaliacoes: totalAvaliacoes.value,
 }))
