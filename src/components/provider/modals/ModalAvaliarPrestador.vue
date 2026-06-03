@@ -322,10 +322,6 @@ watch(
   animation: fade-up 0.45s ease both;
 }
 
-form-group-char {
-  margin-bottom: -1.1rem;
-}
-
 .rotulo-opcional {
   font-weight: 400;
   color: var(--color-neutral-light-dark);
