@@ -1,6 +1,23 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { useRouter, RouterLink } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+interface NavItem {
+  label: string
+  href: string
+}
+
+const props = withDefaults(
+  defineProps<{ navItems?: NavItem[] }>(),
+  {
+    navItems: () => [
+      { label: 'Início', href: '#inicio' },
+      { label: 'Serviços', href: '#servicos' },
+      { label: 'Solicitações', href: '#solicitacoes' },
+    ],
+  },
+)
 import searchIcon from '@/assets/icons/search.svg'
 import profileIcon from '@/assets/icons/profile.svg'
 import menuIcon from '@/assets/icons/menu.svg'
@@ -8,6 +25,9 @@ import menuUserIcon from '@/assets/icons/menu-user.svg'
 import menuCheckIcon from '@/assets/icons/menu-check.svg'
 import menuToolsIcon from '@/assets/icons/menu-tools.svg'
 import menuLogoutIcon from '@/assets/icons/menu-logout.svg'
+
+const router = useRouter()
+const authStore = useAuthStore()
 
 const menuMobileAberto = ref(false)
 const menuPerfilAberto = ref(false)
@@ -27,13 +47,18 @@ function toggleMenuPerfil() {
   menuMobileAberto.value = false
 }
 
-function fecharMenuPerfil() {
-  menuPerfilAberto.value = false
-}
-
 function fecharTudo() {
   menuMobileAberto.value = false
   menuPerfilAberto.value = false
+}
+
+async function sair() {
+  try {
+    await authStore.logout()
+  } finally {
+    fecharTudo()
+    router.push({ name: 'home' })
+  }
 }
 </script>
 
@@ -55,9 +80,9 @@ function fecharTudo() {
         </div>
 
         <nav class="logged-header__nav">
-          <a href="#inicio">Início</a>
-          <a href="#servicos">Serviços</a>
-          <a href="#solicitacoes">Solicitações</a>
+          <a v-for="item in props.navItems" :key="item.href" :href="item.href">
+            {{ item.label }}
+          </a>
         </nav>
 
         <div class="logged-header__actions">
@@ -100,7 +125,7 @@ function fecharTudo() {
                   <span>Tornar-se prestador</span>
                 </a>
 
-                <a href="#" class="profile-dropdown__item profile-dropdown__item--danger" @click="fecharTudo">
+                <a href="#" class="profile-dropdown__item profile-dropdown__item--danger" @click.prevent="sair">
                   <img :src="menuLogoutIcon" alt="" class="profile-dropdown__item-icon" />
                   <span>Sair</span>
                 </a>
@@ -136,19 +161,15 @@ function fecharTudo() {
         </div>
 
         <nav class="logged-header__drawer-nav">
-          <a href="#inicio" class="logged-header__drawer-link" @click="fecharTudo">
-            <span class="logged-header__drawer-link-num">01</span>
-            <span class="logged-header__drawer-link-text">Início</span>
-          </a>
-
-          <a href="#servicos" class="logged-header__drawer-link" @click="fecharTudo">
-            <span class="logged-header__drawer-link-num">02</span>
-            <span class="logged-header__drawer-link-text">Serviços</span>
-          </a>
-
-          <a href="#solicitacoes" class="logged-header__drawer-link" @click="fecharTudo">
-            <span class="logged-header__drawer-link-num">03</span>
-            <span class="logged-header__drawer-link-text">Solicitações</span>
+          <a
+            v-for="(item, i) in props.navItems"
+            :key="item.href"
+            :href="item.href"
+            class="logged-header__drawer-link"
+            @click="fecharTudo"
+          >
+            <span class="logged-header__drawer-link-num">{{ String(i + 1).padStart(2, '0') }}</span>
+            <span class="logged-header__drawer-link-text">{{ item.label }}</span>
           </a>
         </nav>
       </aside>

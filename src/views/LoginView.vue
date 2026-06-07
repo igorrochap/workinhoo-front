@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import api from '@/services/api'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const form = reactive({ email: '', senha: '' })
 const senhaVisivel = ref(false)
@@ -44,7 +46,9 @@ async function handleEntrar() {
       senha: form.senha,
     })
 
-    router.push('/')
+    await authStore.fetchMe()
+
+    router.push('/inicio')
   } catch (err: any) {
     const status = err.response?.status
     if (status === 422) {

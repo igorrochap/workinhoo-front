@@ -31,9 +31,9 @@ export const useAuthStore = defineStore('auth', {
             this.loading = true
 
             try {
-                const { data } = await api.get<AuthUser>('/auth/me')
+                const { data } = await api.get<AuthUser>('api/auth/me')
                 this.user = data
-            } catch (error) {
+            } catch {
                 this.user = null
             } finally {
                 this.loading = false
@@ -44,6 +44,16 @@ export const useAuthStore = defineStore('auth', {
         async ensureUserLoaded() {
             if (!this.initialized) {
                 await this.fetchMe()
+            }
+        },
+
+        async logout() {
+            try {
+                await api.get('/sanctum/csrf-cookie')
+                await api.post('api/auth/logout')
+            } finally {
+                this.user = null
+                this.initialized = true
             }
         },
 

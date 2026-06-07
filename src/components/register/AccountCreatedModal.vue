@@ -1,6 +1,13 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
+
 defineProps<{ aberto: boolean }>()
-const emit = defineEmits<{ irInicio: [] }>()
+
+const router = useRouter()
+
+function irParaLogin() {
+    router.push('/entrar')
+}
 </script>
 
 <template>
@@ -15,13 +22,14 @@ const emit = defineEmits<{ irInicio: [] }>()
                                 height="52" />
                         </div>
                         <h2 class="modal-titulo">Conta criada com sucesso!</h2>
-                        <p class="modal-subtitulo">Bem-vindo! Sua conta foi criada e você já pode começar a usar a
+                        <p class="modal-subtitulo">Bem-vindo! Sua conta foi criada e você já pode fazer login e começar
+                            a usar a
                             plataforma.</p>
                     </div>
 
                     <div class="form-acoes">
-                        <button class="btn-primario btn-bloco" type="button" @click="emit('irInicio')">
-                            Ir para a página inicial
+                        <button class="btn-primario btn-bloco" type="button" @click="irParaLogin">
+                            Fazer login
                         </button>
                     </div>
 

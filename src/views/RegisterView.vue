@@ -185,6 +185,10 @@ async function handleCadastrar(servicos: Servicos) {
       })
     }
 
+    for (const [key, value] of formPayload.entries()) {
+      console.log(key, value)
+    }
+
     await api.get('/sanctum/csrf-cookie')
     await api.post('api/signup', formPayload)
 

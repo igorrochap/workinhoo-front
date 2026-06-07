@@ -23,11 +23,12 @@ const router = createRouter({
       path: '/recuperar-senha',
       name: 'recover-password',
       component: () => import('@/views/RecoverPasswordView.vue'),
-    }, 
+    },
     {
       path: '/inicio',
       name: 'logged-home',
-      component: () => import('@/views/usuario/UsuarioLoggedHomeView.vue'),
+      component: () => import('@/views/LoggedHomeView.vue'),
+      meta: { requiresAuth: true },
     },
     {
       path: '/perfil',
@@ -39,6 +40,7 @@ const router = createRouter({
       path: '/prestadores/:id',
       component: () => import('@/views/provider/ProviderDetailsView.vue'),
       props: true,
+      meta: { requiresAuth: true },
       children: [
         {
           path: '',
@@ -72,7 +74,9 @@ router.beforeEach(async (to) => {
   }
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    return { name: 'home' }
+    return {
+      name: 'login',
+    }
   }
 
   return true
